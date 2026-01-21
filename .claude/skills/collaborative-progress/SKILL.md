@@ -195,18 +195,39 @@ agent/autumn-leaf/refactor-zzz
 ### Setup Before Work
 
 ```bash
-# 1. Generate a poetic identity (or choose one)
+# 1. Ensure main branch is up-to-date (CRITICAL: always pull latest first)
+git checkout main && git pull
+
+# 2. Generate a poetic identity (or choose one)
 AGENT_NAME="wandering-cloud"  # Be creative: moonlit-path, frozen-pine, etc.
 
-# 2. Create worktree in parent directory
+# 3. Create worktree in parent directory (from latest main)
 git worktree add "../worktree_of_${AGENT_NAME}" -b "agent/${AGENT_NAME}/workspace"
 
-# 3. Enter your isolated workspace
+# 4. Enter your isolated workspace
 cd "../worktree_of_${AGENT_NAME}"
 
-# 4. Create feature branch from your workspace branch
+# 5. Push workspace branch to remote immediately (establish tracking)
+git push -u origin "agent/${AGENT_NAME}/workspace"
+
+# 6. Create feature branch for your task
 git checkout -b "agent/${AGENT_NAME}/feat-your-task"
+
+# 7. Push feature branch to remote (ALWAYS push local branches to remote)
+git push -u origin "agent/${AGENT_NAME}/feat-your-task"
+
+# Now ready to start work!
 ```
+
+### Pre-Work Checklist
+
+Before starting any task, ensure:
+
+- [x] Main branch pulled to latest (`git pull` on main)
+- [x] Worktree created from latest main
+- [x] Workspace branch pushed to remote
+- [x] Feature branch created and pushed to remote
+- [x] `BRANCH_PROGRESS.md` created and pushed
 
 ### Workspace Structure
 
@@ -236,84 +257,92 @@ git branch -d "agent/${AGENT_NAME}/workspace"
 
 ---
 
-## Git Workflow Integration
+## Distributed Progress Tracking
 
-### Before Starting (Before Creating Branch)
+Since main branch is typically protected (requires PR), each branch maintains its own `BRANCH_PROGRESS.md`. Team progress is aggregated by querying all remote branches.
+
+### Branch Progress File Template
+
+Each branch maintains `BRANCH_PROGRESS.md` in project root:
+
+```markdown
+# Branch Progress
+
+**Branch**: feat/xxx
+**Task ID**: T001
+**Owner**: @yourname
+**Started**: YYYY-MM-DD
+**Status**: In Progress
+
+## Progress Log
+
+### YYYY-MM-DD
+- 0% - Starting work
+```
+
+### Git Workflow (Protected Main)
+
+#### Starting Work
 
 ```bash
-# 1. Switch to main and pull latest
+# 1. Pull latest main (CRITICAL)
 git checkout main && git pull
 
-# 2. Update PROGRESS.md - claim the task
-# Add to "In Progress" table:
-# | T001 | Task desc | @yourname | feat/xxx | MM-DD | MM-DD | 0% - starting |
+# 2. Create feature branch and push immediately
+git checkout -b feat/xxx
+git push -u origin feat/xxx
 
-# 3. Commit progress update
-git add PROGRESS.md
+# 3. Create BRANCH_PROGRESS.md and commit
+git add BRANCH_PROGRESS.md
 git commit -m "progress: claim T001 - [brief description]"
 git push
-
-# 4. Create feature branch
-git checkout -b feat/xxx
 ```
 
-### During Work
+#### During Work
 
 ```bash
-# Update progress regularly (daily recommended)
-git checkout main && git pull
-# Update Progress column and Daily Updates in PROGRESS.md
-git add PROGRESS.md
+# Update progress in your branch (no need to touch main)
+# Edit BRANCH_PROGRESS.md - add new entry to Progress Log
+git add BRANCH_PROGRESS.md
 git commit -m "progress: T001 update - [brief status]"
 git push
-git checkout feat/xxx
 ```
 
-### Before Merge
+#### Creating PR
 
 ```bash
-# 1. Update PROGRESS.md
-# - Move task from "In Progress" to "Ready for Review"
-# - Add PR link
-
-# 2. Commit and create PR
-git checkout main && git pull
-git add PROGRESS.md
+# Update BRANCH_PROGRESS.md: Status -> Ready for Review
+git add BRANCH_PROGRESS.md
 git commit -m "progress: T001 ready for review"
 git push
-git checkout feat/xxx
-git push -u origin feat/xxx
 gh pr create
 ```
 
-### After Merge
+### Query Team Progress
+
+Use the provided script to aggregate progress from all branches:
 
 ```bash
-# 1. Update PROGRESS.md
-# - Move task from "Ready for Review" to "Done"
-# - Record completion date
+# Summary table view
+./scripts/team-progress.sh
 
-# 2. Commit
-git checkout main && git pull
-# Update PROGRESS.md
-git add PROGRESS.md
-git commit -m "progress: T001 completed"
-git push
+# Detailed view with full progress logs
+./scripts/team-progress.sh --detail
 ```
+
+Script location: `.claude/skills/collaborative-progress/scripts/team-progress.sh`
 
 ---
 
 ## Commit Message Convention
 
-Progress-related commits use `progress:` prefix:
+Progress-related commits (in your feature branch) use `progress:` prefix:
 
 ```
 progress: claim T001 - user auth module
 progress: T001 update - 60% complete, API design done
 progress: T001 ready for review
-progress: T001 completed
-progress: add R002 risk - third-party API unstable
-progress: resolve R001 - switched to backup solution
+progress: T001 blocked - waiting for API spec
 ```
 
 ---
@@ -348,10 +377,12 @@ touch PLAN.md RISKS.md PROGRESS.md
 ## Best Practices
 
 1. **Atomic updates**: Update one task status at a time
-2. **Timely sync**: Commit to main immediately after status change
-3. **Clear descriptions**: Progress column should state what's done, not just percentage
+2. **Branch-local progress**: Keep progress updates in your branch's `BRANCH_PROGRESS.md`, never push directly to main
+3. **Clear descriptions**: Progress log should state what's done, not just percentage
 4. **Front-load risks**: Log risks immediately when discovered
-5. **Reduce conflicts**: Keep progress commits small and frequent
+5. **Pull before work**: Always `git pull` on main before creating worktree or branch
+6. **Push branches immediately**: Push every new branch to remote right after creation
+7. **Regular progress commits**: Push progress updates frequently so team can query your status
 
 ---
 
