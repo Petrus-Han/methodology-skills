@@ -43,7 +43,24 @@ All skills follow the same fundamental algorithm:
 4. **Accelerate** - Speed up the cycle
 5. **Automate** - Only after steps 1-4
 
-## Usage
+## Installation
+
+### Global Installation (Recommended)
+
+Use the install script to symlink skills to your global Claude Code directory:
+
+```bash
+# Install all skills globally
+./install.sh install
+
+# Check installation status
+./install.sh list
+
+# Uninstall
+./install.sh uninstall
+```
+
+### Per-Project Installation
 
 Copy the `.claude/skills/` directory to your project to enable these skills in Claude Code.
 
